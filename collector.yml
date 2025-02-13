@@ -1,0 +1,93 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+  syslog:
+    udp:
+      listen_address: "0.0.0.0:50514"
+    protocol:  rfc5424 # rfc3164 
+    operators:
+      - type: move
+        from: attributes.message
+        to: body
+      - type: move
+        from: attributes.appname
+        to: attributes.application
+        on_error: send_quiet
+      - type: regex_parser
+        regex: '\#\d{2}\-(?P<trace_id>.{32})\-(?P<span_id>.{16})\-(?P<trace_flags>\d{2})$'
+        on_error: send_quiet
+        trace:
+          trace_id:
+            parse_from: attributes.trace_id
+          span_id:
+            parse_from: attributes.span_id
+          trace_flags:
+            parse_from: attributes.trace_flags
+      - type: regex_parser
+        regex: '^(?<body>.+?)(\#\d{2}\-.{32}\-.{16}\-\d{2}$|$)'
+        parse_from: body
+        on_error: send_quiet
+      - type: move
+        from: attributes.body
+        to: body
+        on_error: send_quiet
+
+
+exporters:
+  debug:
+    verbosity: detailed
+    sampling_initial: 5
+    sampling_thereafter: 200
+  otlp:
+    endpoint: tempo-grpc.apps.example.com:443
+    tls:
+      insecure_skip_verify: true
+  loki:
+    default_labels_enabled:
+      exporter: false
+      job: true
+    endpoint: https://loki.apps.example.com/loki/api/v1/push
+    tls:
+      insecure_skip_verify: true
+  otlphttp:
+    endpoint: https://loki.apps.example.com/otlp
+    tls:
+      insecure_skip_verify: true
+
+processors:
+  probabilistic_sampler:
+    sampling_percentage: 10
+  filter:
+    error_mode: ignore
+    traces:
+      span:
+        - status.code != 2
+  batch:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 1000
+    spike_limit_percentage: 10
+  attributes/loki:
+    actions:
+      - action: insert
+        key: loki.attribute.labels
+        value: service_name, service_namespace, application, hostname, host, level, facility, connection_hostname, trace_id, span_id, trace_flags
+      - action: insert
+        key: loki.format
+        value: raw
+
+service:
+  telemetry:
+    logs:
+      level: "info"
+  pipelines:
+    logs:
+      receivers: [syslog]
+      processors: [memory_limiter,attributes/loki,batch]
+      exporters: [ debug,loki ]
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter,batch]
+      exporters: [ debug,otlp ]

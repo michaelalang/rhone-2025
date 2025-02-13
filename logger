@@ -1,0 +1,37 @@
+#!/usr/local/bin/python3.13
+
+import logging
+import os
+import socket
+from rfc5424logging import Rfc5424SysLogHandler
+import rfc5424logging
+from optparse import OptionParser
+
+parser = OptionParser()
+parser.add_option("-t", "--tag", action="store", default="syslog")
+parser.add_option("-p", "--level", action="store", default="info")
+parser.add_option("-T", "--tcp", action="store_true", default=False)
+
+options, remainings = parser.parse_args()
+try:
+    options.facility, options.priority = options.level.split(".")
+except:
+    options.facility, options.priority = "user", "info"
+
+if os.environ.get("TRACEPARENT", False) is not False:
+    remainings.append(f"#{os.environ.get('TRACEPARENT')}")
+
+logger = logging.getLogger("syslogtest")
+logger.setLevel(getattr(logging, options.priority.upper()))
+
+sh = Rfc5424SysLogHandler(
+    address=("127.0.0.1", 50514),
+    socktype=socket.SOCK_STREAM if options.tcp else socket.SOCK_DGRAM,
+    facility=getattr(rfc5424logging, f"LOG_{options.facility.upper()}"),
+    hostname=socket.gethostname(),
+    appname=options.tag,
+    procid=os.getpid(),
+)
+
+logger.addHandler(sh)
+getattr(logger, options.priority)(" ".join(remainings))

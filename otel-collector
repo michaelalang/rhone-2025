@@ -1,0 +1,6 @@
+#!/bin/bash
+podman rm -f otel
+podman run -d --name otel --rm -v $(pwd)/collector.yml:/config/collector.yml \
+  -p 4317:4317 -p 4318:4318 -p 50514:50514/udp -p 50514:50514/tcp \
+  otel/opentelemetry-collector-contrib \
+  --config=/config/collector.yml
