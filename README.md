@@ -71,7 +71,6 @@
     podman logs otel
     ```
 
-        ```
         2025-02-13T14:05:12.046Z        info    Traces  {"kind": "exporter", "data_type": "traces", "name": "debug", "resource spans": 1, "spans": 1}
         2025-02-13T14:05:12.046Z        info    ResourceSpans #0
         Resource SchemaURL:
@@ -104,7 +103,6 @@
                   -> name: Str(example)
                   -> another: Str(attribute)
                 {"kind": "exporter", "data_type": "traces", "name": "debug"}
-       ```
 
 * using the otel-cli instead and listing the directory 
 
@@ -112,7 +110,6 @@
     otel-cli exec -- ls 
     ```
 
-        ```
         2025-02-13T14:06:32.818Z        info    Traces  {"kind": "exporter", "data_type": "traces", "name": "debug", "resource spans": 1, "spans": 1}
         2025-02-13T14:06:32.818Z        info    ResourceSpans #0
         Resource SchemaURL: https://opentelemetry.io/schemas/1.17.0
@@ -138,7 +135,6 @@
              -> process.pid: Int(6275)
              -> process.parent_pid: Int(6284)
                 {"kind": "exporter", "data_type": "traces", "name": "debug"}
-        ```
 
 ## create a logs with otel
 
@@ -150,7 +146,6 @@
     ./logger -p user.info "Testing otel logging" 
     ``` 
 
-        ```
         2025-02-13T14:16:41.183Z        info    Logs    {"kind": "exporter", "data_type": "logs", "name": "debug", "resource logs": 1, "log records": 1}
         2025-02-13T14:16:41.184Z        info    ResourceLog #0
         Resource SchemaURL:
@@ -179,7 +174,6 @@
         Span ID: fcf926aa13a16bee
         Flags: 1
                 {"kind": "exporter", "data_type": "logs", "name": "debug"}
-        ``` 
 
 ### running on Linux 
 
@@ -189,7 +183,6 @@
     ./logger -p user.info "Testing otel logging"
     ```
 
-        ```
         2025-02-13T14:17:48.073Z        info    Logs    {"kind": "exporter", "data_type": "logs", "name": "debug", "resource logs": 1, "log records": 1}
         2025-02-13T14:17:48.074Z        info    ResourceLog #0
         Resource SchemaURL:
@@ -218,7 +211,6 @@
         Span ID: fcf926aa13a16bee
         Flags: 1
                 {"kind": "exporter", "data_type": "logs", "name": "debug"}
-        ``` 
 
 * if using the system logger you need to quote and add `#${TRACEPARENT}` to correlate logs to traces
 
@@ -226,7 +218,6 @@
     logger -p user.info "Testing otel logging#${TRACEPARENT}"
     ```
 
-        ```
         2025-02-13T14:20:00.097Z        info    Logs    {"kind": "exporter", "data_type": "logs", "name": "debug", "resource logs": 1, "log records": 1}
         2025-02-13T14:20:00.097Z        info    ResourceLog #0
         Resource SchemaURL:
@@ -255,4 +246,3 @@
         Span ID: fcf926aa13a16bee
         Flags: 1
                 {"kind": "exporter", "data_type": "logs", "name": "debug"}
-        ``` 
